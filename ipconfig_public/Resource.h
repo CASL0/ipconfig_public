@@ -7,6 +7,9 @@
 #define IDC_LIST_IPINFO                 1000
 #define IDS_LIST_HEADER_KEY             10000
 #define IDS_LIST_HEADER_VALUE           10001
+#define IDS_GROUP_PRIVATE_IP            10002
+#define IDS_GROUP_TASK_COLLAPSED        10003
+#define IDS_GROUP_TASK_HIDE             10004
 
 // Next default values for new objects
 // 

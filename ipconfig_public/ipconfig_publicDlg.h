@@ -3,7 +3,9 @@
 //
 
 #pragma once
-
+#include <string>
+#include <list>
+#include <map>
 
 // CipconfigpublicDlg ダイアログ
 class CipconfigpublicDlg : public CDialogEx
@@ -32,4 +34,20 @@ protected:
 	DECLARE_MESSAGE_MAP()
 private:
 	CListCtrl m_listCtrl;
+	std::map<std::wstring, std::list<std::string>> m_privateIpAddresses;
+	std::list<std::string> m_privateIpList;
+	int m_nextItem = 0;
+
+	ULONG GetAdapterInfo();
+	std::wstring FormatErrorMessage(ULONG errorCode) const;
+	std::string SockAddrToStrAddr(SOCKADDR* addr, ADDRESS_FAMILY af) const;
+	void MakeGroup(UINT groupNameResourceId, int groupId);
+	void AddItemToGroup(const std::wstring& itemKey, const std::wstring& itemValue, int groupId);
+	void DisplayPrivateIpAddress();
+	std::wstring Utf8ToUtf16(const std::string& src);
+private:
+	enum class GROUP_ID
+	{
+		PRIVATE_IP = 0,
+	};
 };

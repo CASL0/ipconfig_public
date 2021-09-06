@@ -26,6 +26,7 @@ CipconfigpublicDlg::CipconfigpublicDlg(CWnd* pParent /*=nullptr*/)
 void CipconfigpublicDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_LIST_IPINFO, m_listCtrl);
 }
 
 BEGIN_MESSAGE_MAP(CipconfigpublicDlg, CDialogEx)
@@ -45,8 +46,20 @@ BOOL CipconfigpublicDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 大きいアイコンの設定
 	SetIcon(m_hIcon, FALSE);		// 小さいアイコンの設定
 
-	// TODO: 初期化をここに追加します。
+	CString resourceStr;
+	(void)resourceStr.LoadStringW(AFX_IDS_APP_TITLE);
+	SetWindowText(resourceStr);
 
+	(void)m_listCtrl.SetExtendedStyle(m_listCtrl.GetExtendedStyle() | LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP);
+	(void)resourceStr.LoadStringW(IDS_LIST_HEADER_KEY);
+	(void)m_listCtrl.InsertColumn(0, resourceStr, LVCFMT_LEFT, 100);
+
+	(void)resourceStr.LoadStringW(IDS_LIST_HEADER_VALUE);
+	(void)m_listCtrl.InsertColumn(1, resourceStr, LVCFMT_LEFT, 100);
+
+	EnableDynamicLayout(TRUE);
+	(void)m_pDynamicLayout->Create(this);
+	(void)m_pDynamicLayout->AddItem(IDC_LIST_IPINFO, CMFCDynamicLayout::MoveNone(), CMFCDynamicLayout::SizeHorizontalAndVertical(100, 100));
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
 

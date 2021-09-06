@@ -6,6 +6,7 @@
 #include "framework.h"
 #include "ipconfig_public.h"
 #include "ipconfig_publicDlg.h"
+#include <memory>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -43,7 +44,7 @@ BOOL CipconfigpublicApp::InitInstance()
 	// アプリケーション マニフェストが visual スタイルを有効にするために、
 	// ComCtl32.dll Version 6 以降の使用を指定する場合は、
 	// Windows XP に InitCommonControlsEx() が必要です。さもなければ、ウィンドウ作成はすべて失敗します。
-	INITCOMMONCONTROLSEX InitCtrls;
+	INITCOMMONCONTROLSEX InitCtrls = { 0 };
 	InitCtrls.dwSize = sizeof(InitCtrls);
 	// アプリケーションで使用するすべてのコモン コントロール クラスを含めるには、
 	// これを設定します。
@@ -57,7 +58,7 @@ BOOL CipconfigpublicApp::InitInstance()
 
 	// ダイアログにシェル ツリー ビューまたはシェル リスト ビュー コントロールが
 	// 含まれている場合にシェル マネージャーを作成します。
-	CShellManager *pShellManager = new CShellManager;
+	auto pShellManager = std::make_unique<CShellManager>();
 
 	// MFC コントロールでテーマを有効にするために、"Windows ネイティブ" のビジュアル マネージャーをアクティブ化
 	CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerWindows));
@@ -73,28 +74,8 @@ BOOL CipconfigpublicApp::InitInstance()
 
 	CipconfigpublicDlg dlg;
 	m_pMainWnd = &dlg;
-	INT_PTR nResponse = dlg.DoModal();
-	if (nResponse == IDOK)
-	{
-		// TODO: ダイアログが <OK> で消された時のコードを
-		//  記述してください。
-	}
-	else if (nResponse == IDCANCEL)
-	{
-		// TODO: ダイアログが <キャンセル> で消された時のコードを
-		//  記述してください。
-	}
-	else if (nResponse == -1)
-	{
-		TRACE(traceAppMsg, 0, "警告: ダイアログの作成に失敗しました。アプリケーションは予期せずに終了します。\n");
-		TRACE(traceAppMsg, 0, "警告: ダイアログで MFC コントロールを使用している場合、#define _AFX_NO_MFC_CONTROLS_IN_DIALOGS を指定できません。\n");
-	}
+	(void)dlg.DoModal();
 
-	// 上で作成されたシェル マネージャーを削除します。
-	if (pShellManager != nullptr)
-	{
-		delete pShellManager;
-	}
 
 #if !defined(_AFXDLL) && !defined(_AFX_NO_MFC_CONTROLS_IN_DIALOGS)
 	ControlBarCleanUp();

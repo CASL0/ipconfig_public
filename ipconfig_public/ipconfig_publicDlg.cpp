@@ -63,6 +63,7 @@ BOOL CipconfigpublicDlg::OnInitDialog()
 	(void)m_listCtrl.InsertColumn(1, resourceStr, LVCFMT_LEFT, 300);
 
 	MakeGroup(IDS_GROUP_PRIVATE_IP, static_cast<int>(GROUP_ID::PRIVATE_IP));
+	MakeGroup(IDS_GROUP_DNS_SERVER, static_cast<int>(GROUP_ID::DNS_SERVER));
 
 	if (auto ret = GetAdapterInfo(); ret != ERROR_SUCCESS)
 	{
@@ -72,6 +73,7 @@ BOOL CipconfigpublicDlg::OnInitDialog()
 	(void)m_listCtrl.EnableGroupView(TRUE);
 
 	DisplayPrivateIpAddress();
+	DisplayDnsServers();
 
 	EnableDynamicLayout(TRUE);
 	(void)m_pDynamicLayout->Create(this);
@@ -149,6 +151,7 @@ ULONG CipconfigpublicDlg::GetAdapterInfo()
 		friendlyName.Format(L"Friendly name: %ls\n", currentAddress->FriendlyName);
 		OutputDebugString(friendlyName.GetString());
 
+		//NICのプライベートIPアドレス取得
 		std::list<std::string> unicastList;
 		PIP_ADAPTER_UNICAST_ADDRESS unicast = currentAddress->FirstUnicastAddress;
 		while (unicast)
@@ -168,6 +171,36 @@ ULONG CipconfigpublicDlg::GetAdapterInfo()
 		}
 
 		m_privateIpAddresses[currentAddress->FriendlyName] = unicastList;
+
+		//DNSサーバーのIPアドレス取得
+		std::list<std::string> dnsServerList;
+		IP_ADAPTER_DNS_SERVER_ADDRESS* dnsServerAddr = currentAddress->FirstDnsServerAddress;
+		while (dnsServerAddr)
+		{
+			ADDRESS_FAMILY af = 0;
+			auto addrLength = dnsServerAddr->Address.iSockaddrLength;
+			switch (addrLength)
+			{
+			case sizeof(SOCKADDR_IN) :
+				af = AF_INET;
+				break;
+			case sizeof(SOCKADDR_IN6) :
+				af = AF_INET6;
+				break;
+			default:
+				break;
+			}
+
+			if (auto dns = SockAddrToStrAddr(dnsServerAddr->Address.lpSockaddr, af); !dns.empty())
+			{
+				dnsServerList.push_back(dns.c_str());
+				CStringA message;
+				message.Format("Dns server address added: %s\n", dns.c_str());
+				OutputDebugStringA(message.GetString());
+			}
+			dnsServerAddr = dnsServerAddr->Next;
+		}
+		m_dnsServers[currentAddress->FriendlyName] = dnsServerList;
 	}
 	return ERROR_SUCCESS;
 }
@@ -217,7 +250,7 @@ void CipconfigpublicDlg::MakeGroup(UINT groupNameResourceId, int groupId)
 	group.mask = LVGF_HEADER | LVGF_GROUPID | LVGF_TASK;
 
 	CString groupName;
-	(void)groupName.LoadStringW(IDS_GROUP_PRIVATE_IP);
+	(void)groupName.LoadStringW(groupNameResourceId);
 	group.pszHeader = const_cast<LPWSTR>(groupName.GetString());
 
 	CString resourceStr;
@@ -248,6 +281,17 @@ void CipconfigpublicDlg::DisplayPrivateIpAddress()
 		for (const auto& elem : value)
 		{
 			AddItemToGroup(key, Utf8ToUtf16(elem), static_cast<int>(GROUP_ID::PRIVATE_IP));
+		}
+	}
+}
+
+void CipconfigpublicDlg::DisplayDnsServers()
+{
+	for (const auto& [key, value] : m_dnsServers)
+	{
+		for (const auto& elem : value)
+		{
+			AddItemToGroup(key, Utf8ToUtf16(elem), static_cast<int>(GROUP_ID::DNS_SERVER));
 		}
 	}
 }

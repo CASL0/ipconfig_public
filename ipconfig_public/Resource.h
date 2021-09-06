@@ -10,6 +10,7 @@
 #define IDS_GROUP_PRIVATE_IP            10002
 #define IDS_GROUP_TASK_COLLAPSED        10003
 #define IDS_GROUP_TASK_HIDE             10004
+#define IDS_GROUP_DNS_SERVER            10005
 
 // Next default values for new objects
 // 

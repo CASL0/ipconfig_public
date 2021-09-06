@@ -35,6 +35,7 @@ protected:
 private:
 	CListCtrl m_listCtrl;
 	std::map<std::wstring, std::list<std::string>> m_privateIpAddresses;
+	std::map<std::wstring, std::list<std::string>> m_dnsServers;
 	std::list<std::string> m_privateIpList;
 	int m_nextItem = 0;
 
@@ -44,11 +45,13 @@ private:
 	void MakeGroup(UINT groupNameResourceId, int groupId);
 	void AddItemToGroup(const std::wstring& itemKey, const std::wstring& itemValue, int groupId);
 	void DisplayPrivateIpAddress();
+	void DisplayDnsServers();
 	std::wstring Utf8ToUtf16(const std::string& src);
 private:
 	enum class GROUP_ID
 	{
 		PRIVATE_IP = 0,
+		DNS_SERVER,
 	};
 public:
 	afx_msg void OnLvnLinkClickedListIpinfo(NMHDR* pNMHDR, LRESULT* pResult);

@@ -36,6 +36,7 @@ void CipconfigpublicDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CipconfigpublicDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_NOTIFY(LVN_LINKCLICK, IDC_LIST_IPINFO, &CipconfigpublicDlg::OnLvnLinkClickedListIpinfo)
 END_MESSAGE_MAP()
 
 
@@ -257,4 +258,31 @@ std::wstring CipconfigpublicDlg::Utf8ToUtf16(const std::string& src)
 	std::vector<wchar_t> buffer(bufLen);
 	(void)MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, buffer.data(), bufLen);
 	return std::wstring(buffer.data());
+}
+
+void CipconfigpublicDlg::OnLvnLinkClickedListIpinfo(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	*pResult = 0;
+
+	PNMLVLINK pLinkInfo = reinterpret_cast<PNMLVLINK>(pNMHDR);
+	auto groupId = pLinkInfo->iSubItem;
+
+	LVGROUP group = { 0 };
+	group.cbSize = sizeof(LVGROUP);
+	group.mask = LVGF_TASK;
+
+	CString task;
+	if (m_listCtrl.GetGroupState(groupId, LVGS_COLLAPSED))
+	{
+		(void)task.LoadStringW(IDS_GROUP_TASK_HIDE);
+		group.pszTask = const_cast<LPWSTR>(task.GetString());
+		ListView_SetGroupState(m_listCtrl.m_hWnd, groupId, LVGS_COLLAPSED, 0);
+	}
+	else
+	{
+		(void)task.LoadStringW(IDS_GROUP_TASK_COLLAPSED);
+		group.pszTask = const_cast<LPWSTR>(task.GetString());
+		ListView_SetGroupState(m_listCtrl.m_hWnd, groupId, LVGS_COLLAPSED, LVGS_COLLAPSED);
+	}
+	(void)m_listCtrl.SetGroupInfo(groupId, &group);
 }

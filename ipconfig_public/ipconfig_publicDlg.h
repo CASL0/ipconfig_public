@@ -50,4 +50,6 @@ private:
 	{
 		PRIVATE_IP = 0,
 	};
+public:
+	afx_msg void OnLvnLinkClickedListIpinfo(NMHDR* pNMHDR, LRESULT* pResult);
 };

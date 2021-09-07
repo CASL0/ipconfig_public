@@ -52,7 +52,7 @@ DWORD HttpRequest::RequestUri(const std::wstring& url, WINHTTP_STATUS_CALLBACK c
 		return GetLastError();
 	}
 
-	if (WinHttpSendRequest(m_request.get(), WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, callbackParam))
+	if (!WinHttpSendRequest(m_request.get(), WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, callbackParam))
 	{
 		OutputDebugString(L"WinHttpSendRequest failed\n");
 		return GetLastError();

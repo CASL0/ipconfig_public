@@ -68,9 +68,11 @@ private:
 	void DisplayPublicIpAddress();
 	void DisplayDnsServers();
 	std::wstring Utf8ToUtf16(const std::string& src);
+	void UpdateListContents();
 	void OnResponse(HINTERNET hInternet, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength);
 	LRESULT OnDownloadPublicIpInfo(WPARAM, LPARAM);
 public:
 	afx_msg void OnLvnLinkClickedListIpinfo(NMHDR* pNMHDR, LRESULT* pResult);
 	static void CALLBACK cb(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength);
+	afx_msg void OnBnClickedButtonUpdate();
 };

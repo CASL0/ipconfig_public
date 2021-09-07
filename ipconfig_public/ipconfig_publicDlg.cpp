@@ -38,6 +38,7 @@ BEGIN_MESSAGE_MAP(CipconfigpublicDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_NOTIFY(LVN_LINKCLICK, IDC_LIST_IPINFO, &CipconfigpublicDlg::OnLvnLinkClickedListIpinfo)
 	ON_MESSAGE(MESSAGE_DOWNLOAD_PUBLIC_IP_INFO, CipconfigpublicDlg::OnDownloadPublicIpInfo)
+	ON_BN_CLICKED(IDC_BUTTON_UPDATE, &CipconfigpublicDlg::OnBnClickedButtonUpdate)
 END_MESSAGE_MAP()
 
 
@@ -67,21 +68,17 @@ BOOL CipconfigpublicDlg::OnInitDialog()
 	MakeGroup(IDS_GROUP_PUBLIC_IP, static_cast<int>(GROUP_ID::PUBLIC_IP));
 	MakeGroup(IDS_GROUP_DNS_SERVER, static_cast<int>(GROUP_ID::DNS_SERVER));
 
-	if (auto ret = GetAdapterInfo(); ret != ERROR_SUCCESS)
-	{
-		OutputDebugString(L"プライベートIPアドレスの取得に失敗\n");
-	}
-
 	(void)m_listCtrl.EnableGroupView(TRUE);
 
-	DisplayPrivateIpAddress();
-	DisplayDnsServers();
-	m_state = DOWNLOAD_STATE::PUBLIC_IPv4;
-	PostMessage(MESSAGE_DOWNLOAD_PUBLIC_IP_INFO, static_cast<WPARAM>(m_state), 0);
+	(void)resourceStr.LoadStringW(IDS_BUTTON_UPDATE);
+	GetDlgItem(IDC_BUTTON_UPDATE)->SetWindowTextW(resourceStr);
 
 	EnableDynamicLayout(TRUE);
 	(void)m_pDynamicLayout->Create(this);
 	(void)m_pDynamicLayout->AddItem(IDC_LIST_IPINFO, CMFCDynamicLayout::MoveNone(), CMFCDynamicLayout::SizeHorizontalAndVertical(100, 100));
+	(void)m_pDynamicLayout->AddItem(IDC_BUTTON_UPDATE, CMFCDynamicLayout::MoveVertical(100), CMFCDynamicLayout::SizeNone());
+
+	UpdateListContents();
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
 
@@ -316,6 +313,21 @@ std::wstring CipconfigpublicDlg::Utf8ToUtf16(const std::string& src)
 	return std::wstring(buffer.data());
 }
 
+void CipconfigpublicDlg::UpdateListContents()
+{
+	m_state = DOWNLOAD_STATE::PUBLIC_IPv4;
+	PostMessage(MESSAGE_DOWNLOAD_PUBLIC_IP_INFO, static_cast<WPARAM>(m_state), 0);
+
+	if (auto ret = GetAdapterInfo(); ret != ERROR_SUCCESS)
+	{
+		OutputDebugString(L"プライベートIPアドレスの取得に失敗\n");
+	}
+
+	DisplayPrivateIpAddress();
+	DisplayDnsServers();
+
+}
+
 void CipconfigpublicDlg::OnLvnLinkClickedListIpinfo(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	*pResult = 0;
@@ -479,4 +491,14 @@ LRESULT CipconfigpublicDlg::OnDownloadPublicIpInfo(WPARAM wParam, LPARAM)
 		break;
 	}
 	return ERROR_SUCCESS;
+}
+
+void CipconfigpublicDlg::OnBnClickedButtonUpdate()
+{
+	m_privateIpAddresses.clear();
+	m_publicIpAddresses.clear();
+	m_dnsServers.clear();
+	(void)m_listCtrl.DeleteAllItems();
+	m_nextItem = 0;
+	UpdateListContents();
 }

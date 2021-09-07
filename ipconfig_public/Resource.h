@@ -11,6 +11,7 @@
 #define IDS_GROUP_TASK_COLLAPSED        10003
 #define IDS_GROUP_TASK_HIDE             10004
 #define IDS_GROUP_DNS_SERVER            10005
+#define IDS_GROUP_PUBLIC_IP             10006
 
 // Next default values for new objects
 // 

@@ -37,6 +37,7 @@ BEGIN_MESSAGE_MAP(CipconfigpublicDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_NOTIFY(LVN_LINKCLICK, IDC_LIST_IPINFO, &CipconfigpublicDlg::OnLvnLinkClickedListIpinfo)
+	ON_MESSAGE(MESSAGE_DOWNLOAD_PUBLIC_IP_INFO, CipconfigpublicDlg::OnDownloadPublicIpInfo)
 END_MESSAGE_MAP()
 
 
@@ -63,6 +64,7 @@ BOOL CipconfigpublicDlg::OnInitDialog()
 	(void)m_listCtrl.InsertColumn(1, resourceStr, LVCFMT_LEFT, 300);
 
 	MakeGroup(IDS_GROUP_PRIVATE_IP, static_cast<int>(GROUP_ID::PRIVATE_IP));
+	MakeGroup(IDS_GROUP_PUBLIC_IP, static_cast<int>(GROUP_ID::PUBLIC_IP));
 	MakeGroup(IDS_GROUP_DNS_SERVER, static_cast<int>(GROUP_ID::DNS_SERVER));
 
 	if (auto ret = GetAdapterInfo(); ret != ERROR_SUCCESS)
@@ -74,6 +76,8 @@ BOOL CipconfigpublicDlg::OnInitDialog()
 
 	DisplayPrivateIpAddress();
 	DisplayDnsServers();
+	m_state = DOWNLOAD_STATE::PUBLIC_IPv4;
+	PostMessage(MESSAGE_DOWNLOAD_PUBLIC_IP_INFO, static_cast<WPARAM>(m_state), 0);
 
 	EnableDynamicLayout(TRUE);
 	(void)m_pDynamicLayout->Create(this);
@@ -285,6 +289,14 @@ void CipconfigpublicDlg::DisplayPrivateIpAddress()
 	}
 }
 
+void CipconfigpublicDlg::DisplayPublicIpAddress()
+{
+	for (const auto& [key, value] : m_publicIpAddresses)
+	{
+		AddItemToGroup(key, Utf8ToUtf16(value), static_cast<int>(GROUP_ID::PUBLIC_IP));
+	}
+}
+
 void CipconfigpublicDlg::DisplayDnsServers()
 {
 	for (const auto& [key, value] : m_dnsServers)
@@ -329,4 +341,142 @@ void CipconfigpublicDlg::OnLvnLinkClickedListIpinfo(NMHDR* pNMHDR, LRESULT* pRes
 		ListView_SetGroupState(m_listCtrl.m_hWnd, groupId, LVGS_COLLAPSED, LVGS_COLLAPSED);
 	}
 	(void)m_listCtrl.SetGroupInfo(groupId, &group);
+}
+
+void CALLBACK CipconfigpublicDlg::cb(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
+{
+	if (dwContext == NULL)
+	{
+		return;
+	}
+
+	auto dlg = reinterpret_cast<CipconfigpublicDlg*>(dwContext);
+	dlg->OnResponse(hInternet, dwInternetStatus, lpvStatusInformation, dwStatusInformationLength);
+}
+
+void CipconfigpublicDlg::OnResponse(HINTERNET hInternet, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
+{
+	HINTERNET requestHandle = hInternet;
+	switch (dwInternetStatus)
+	{
+	case WINHTTP_CALLBACK_STATUS_DATA_AVAILABLE:
+	{
+		auto size = *(reinterpret_cast<LPDWORD>(lpvStatusInformation));
+		if (size == 0)
+		{	//これ以上読み込むデータがないのでコールバック終了
+			std::string publicIpInfo;
+			publicIpInfo.swap(m_httpResponseBody);
+			if (m_state == DOWNLOAD_STATE::PUBLIC_IPv4)
+			{
+				m_publicIpAddresses[L"IPv4"] = publicIpInfo.c_str();
+				m_state = DOWNLOAD_STATE::PUBLIC_IPv6;
+				PostMessage(MESSAGE_DOWNLOAD_PUBLIC_IP_INFO, static_cast<WPARAM>(m_state), 0);
+			}
+			else if (m_state == DOWNLOAD_STATE::PUBLIC_IPv6)
+			{
+				if (m_publicIpAddresses.at(L"IPv4") != publicIpInfo)
+				{
+					m_publicIpAddresses[L"IPv6"] = publicIpInfo.c_str();
+				}
+				DisplayPublicIpAddress();
+			}
+			return;
+		}
+
+		m_httpBuffer.resize(size + 1);
+
+		if (!WinHttpReadData(requestHandle, m_httpBuffer.data(), size, nullptr))
+		{
+			OutputDebugString(L"WinHttpReadData failed\n");
+			return;
+		}
+		// → WINHTTP_CALLBACK_STATUS_READ_COMPLETE
+	}
+	break;
+	case WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE:
+	{
+		DWORD statusCode = 0;
+		DWORD statusCodeSize = sizeof(DWORD);
+		if (!WinHttpQueryHeaders(requestHandle, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, WINHTTP_HEADER_NAME_BY_INDEX, &statusCode, &statusCodeSize, WINHTTP_NO_HEADER_INDEX))
+		{
+			OutputDebugString(L"WinHttpQueryHeaders failed\n");
+			return;
+		}
+
+		OutputDebugString(L"Status Code: ");
+		OutputDebugString(std::to_wstring(statusCode).c_str());
+		OutputDebugString(L"\n");
+		switch (statusCode)
+		{
+		case 200:
+			break;
+		default:
+			//200応答以外の場合は終了
+			return;
+		}
+
+		if (!WinHttpQueryDataAvailable(requestHandle, nullptr))
+		{
+			OutputDebugString(L"WinHttpQueryDataAvailable failed\n");
+			return;
+		}
+		// → WINHTTP_CALLBACK_STATUS_DATA_AVAILABLE
+		break;
+	}
+	case WINHTTP_CALLBACK_STATUS_READ_COMPLETE:
+		if (lpvStatusInformation && dwStatusInformationLength)
+		{
+			char* buffer = reinterpret_cast<char*>(lpvStatusInformation);
+			buffer[dwStatusInformationLength] = '\0';
+			m_httpResponseBody += buffer;
+
+			// レスポンスデータデータ問い合わせ
+			if (!WinHttpQueryDataAvailable(requestHandle, nullptr))
+			{
+				OutputDebugString(L"WinHttpQueryDataAvailable failed\n");
+				return;
+			}
+			// → WINHTTP_CALLBACK_STATUS_DATA_AVAILABLE
+		}
+		break;
+	case WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE:
+	{
+		// WinHttpSendRequestの完了通知
+
+		if (!WinHttpReceiveResponse(requestHandle, nullptr))
+		{
+			OutputDebugString(L"WinHttpReceiveResponse failed\n");
+			return;
+		}
+		// → WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE
+		break;
+	}
+	case WINHTTP_CALLBACK_STATUS_NAME_RESOLVED:
+		OutputDebugString(L"名前解決\n");
+		OutputDebugString(reinterpret_cast<LPWSTR>(lpvStatusInformation));
+		OutputDebugString(L"\n");
+		break;
+	default:
+		break;
+	}
+
+}
+
+LRESULT CipconfigpublicDlg::OnDownloadPublicIpInfo(WPARAM wParam, LPARAM)
+{
+	auto state = static_cast<DOWNLOAD_STATE>(wParam);
+	switch (state)
+	{
+	case DOWNLOAD_STATE::PUBLIC_IPv4:
+		m_httpRequest.close();
+		m_httpRequest.RequestUri(L"https://api.ipify.org", cb, reinterpret_cast<DWORD_PTR>(this));
+		break;
+	case DOWNLOAD_STATE::PUBLIC_IPv6:
+		m_httpRequest.close();
+		m_httpRequest.RequestUri(L"https://api64.ipify.org", cb, reinterpret_cast<DWORD_PTR>(this));
+		break;
+	default:
+		break;
+	}
+	return ERROR_SUCCESS;
 }

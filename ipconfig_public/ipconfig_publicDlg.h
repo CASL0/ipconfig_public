@@ -6,6 +6,8 @@
 #include <string>
 #include <list>
 #include <map>
+#include <vector>
+#include "httpRequest.h"
 
 // CipconfigpublicDlg ダイアログ
 class CipconfigpublicDlg : public CDialogEx
@@ -22,7 +24,7 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV サポート
 
-
+	static const UINT MESSAGE_DOWNLOAD_PUBLIC_IP_INFO = WM_APP + 1;
 // 実装
 protected:
 	HICON m_hIcon;
@@ -33,11 +35,29 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 private:
+	enum class GROUP_ID
+	{
+		PRIVATE_IP = 0,
+		PUBLIC_IP,
+		DNS_SERVER,
+	};
+
+	enum class DOWNLOAD_STATE
+	{
+		PUBLIC_IPv4 = 0,
+		PUBLIC_IPv6,
+	};
+
 	CListCtrl m_listCtrl;
 	std::map<std::wstring, std::list<std::string>> m_privateIpAddresses;
+	std::map<std::wstring, std::string> m_publicIpAddresses;
 	std::map<std::wstring, std::list<std::string>> m_dnsServers;
 	std::list<std::string> m_privateIpList;
 	int m_nextItem = 0;
+	std::vector<char> m_httpBuffer;
+	std::string m_httpResponseBody;
+	HttpRequest m_httpRequest;
+	DOWNLOAD_STATE m_state = DOWNLOAD_STATE::PUBLIC_IPv4;
 
 	ULONG GetAdapterInfo();
 	std::wstring FormatErrorMessage(ULONG errorCode) const;
@@ -45,14 +65,12 @@ private:
 	void MakeGroup(UINT groupNameResourceId, int groupId);
 	void AddItemToGroup(const std::wstring& itemKey, const std::wstring& itemValue, int groupId);
 	void DisplayPrivateIpAddress();
+	void DisplayPublicIpAddress();
 	void DisplayDnsServers();
 	std::wstring Utf8ToUtf16(const std::string& src);
-private:
-	enum class GROUP_ID
-	{
-		PRIVATE_IP = 0,
-		DNS_SERVER,
-	};
+	void OnResponse(HINTERNET hInternet, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength);
+	LRESULT OnDownloadPublicIpInfo(WPARAM, LPARAM);
 public:
 	afx_msg void OnLvnLinkClickedListIpinfo(NMHDR* pNMHDR, LRESULT* pResult);
+	static void CALLBACK cb(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength);
 };

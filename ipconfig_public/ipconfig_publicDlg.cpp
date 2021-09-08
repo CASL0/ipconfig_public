@@ -290,7 +290,10 @@ void CipconfigpublicDlg::DisplayPublicIpAddress()
 {
 	for (const auto& [key, value] : m_publicIpAddresses)
 	{
-		AddItemToGroup(key, Utf8ToUtf16(value), static_cast<int>(GROUP_ID::PUBLIC_IP));
+		if (!value.empty())
+		{
+			AddItemToGroup(key, Utf8ToUtf16(value), static_cast<int>(GROUP_ID::PUBLIC_IP));
+		}
 	}
 }
 
@@ -468,6 +471,15 @@ void CipconfigpublicDlg::OnResponse(HINTERNET hInternet, DWORD dwInternetStatus,
 		OutputDebugString(reinterpret_cast<LPWSTR>(lpvStatusInformation));
 		OutputDebugString(L"\n");
 		break;
+	case WINHTTP_CALLBACK_STATUS_REQUEST_ERROR:
+	{
+		auto error = reinterpret_cast<WINHTTP_ASYNC_RESULT*>(lpvStatusInformation);
+		CString errorMessage;
+		errorMessage.Format(L"ID: %lu, error: %lu\n", error->dwResult, error->dwError);
+		OutputDebugString(errorMessage.GetString());
+		return;
+		break;
+	}
 	default:
 		break;
 	}
@@ -477,15 +489,18 @@ void CipconfigpublicDlg::OnResponse(HINTERNET hInternet, DWORD dwInternetStatus,
 LRESULT CipconfigpublicDlg::OnDownloadPublicIpInfo(WPARAM wParam, LPARAM)
 {
 	auto state = static_cast<DOWNLOAD_STATE>(wParam);
+	CString url;
 	switch (state)
 	{
 	case DOWNLOAD_STATE::PUBLIC_IPv4:
 		m_httpRequest.close();
-		m_httpRequest.RequestUri(L"https://api.ipify.org", cb, reinterpret_cast<DWORD_PTR>(this));
+		(void)url.LoadStringW(IDS_URL_PUBLIC_V4);
+		(void)m_httpRequest.RequestUri(url.GetString(), cb, reinterpret_cast<DWORD_PTR>(this));
 		break;
 	case DOWNLOAD_STATE::PUBLIC_IPv6:
 		m_httpRequest.close();
-		m_httpRequest.RequestUri(L"https://api64.ipify.org", cb, reinterpret_cast<DWORD_PTR>(this));
+		(void)url.LoadStringW(IDS_URL_PUBLIC_V6);
+		(void)m_httpRequest.RequestUri(url.GetString(), cb, reinterpret_cast<DWORD_PTR>(this));
 		break;
 	default:
 		break;

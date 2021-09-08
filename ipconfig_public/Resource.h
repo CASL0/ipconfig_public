@@ -14,6 +14,8 @@
 #define IDS_GROUP_DNS_SERVER            10005
 #define IDS_GROUP_PUBLIC_IP             10006
 #define IDS_BUTTON_UPDATE               10007
+#define IDS_URL_PUBLIC_V4               10008
+#define IDS_URL_PUBLIC_V6               10009
 
 // Next default values for new objects
 // 

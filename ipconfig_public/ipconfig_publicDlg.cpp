@@ -68,6 +68,7 @@ BOOL CipconfigpublicDlg::OnInitDialog()
 	MakeGroup(IDS_GROUP_PRIVATE_IP, static_cast<int>(GROUP_ID::PRIVATE_IP));
 	MakeGroup(IDS_GROUP_PUBLIC_IP, static_cast<int>(GROUP_ID::PUBLIC_IP));
 	MakeGroup(IDS_GROUP_DNS_SERVER, static_cast<int>(GROUP_ID::DNS_SERVER));
+	MakeGroup(IDS_GROUP_PROXY, static_cast<int>(GROUP_ID::PROXY_CONFIG));
 
 	(void)m_listCtrl.EnableGroupView(TRUE);
 
@@ -313,6 +314,14 @@ void CipconfigpublicDlg::DisplayDnsServers()
 	}
 }
 
+void CipconfigpublicDlg::DisplayProxyConfig()
+{
+	for (const auto& [key, value] : m_proxyConfig)
+	{
+		AddItemToGroup(key, value, static_cast<int>(GROUP_ID::PROXY_CONFIG));
+	}
+}
+
 std::wstring CipconfigpublicDlg::Utf8ToUtf16(const std::string& src)
 {
 	auto bufLen = MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, nullptr, 0);
@@ -331,9 +340,11 @@ void CipconfigpublicDlg::UpdateListContents()
 		OutputDebugString(L"プライベートIPアドレスの取得に失敗\n");
 	}
 
+	RetrieveProxyInfo();
+
 	DisplayPrivateIpAddress();
 	DisplayDnsServers();
-
+	DisplayProxyConfig();
 }
 
 void CipconfigpublicDlg::OnLvnLinkClickedListIpinfo(NMHDR* pNMHDR, LRESULT* pResult)
@@ -534,11 +545,45 @@ void CipconfigpublicDlg::LaunchInternetOption() const
 	(void)FreeLibrary(inetcpl);
 }
 
+void CipconfigpublicDlg::RetrieveProxyInfo()
+{
+	WINHTTP_CURRENT_USER_IE_PROXY_CONFIG proxyInfo = { 0 };
+	if (!WinHttpGetIEProxyConfigForCurrentUser(&proxyInfo))
+	{
+		OutputDebugString(L"WinHttpGetIEProxyConfigForCurrentUser failed\n");
+		return;
+	}
+
+	CString resourceStr;
+
+	//プロキシ自動検出の有無
+	if (proxyInfo.fAutoDetect)
+	{
+		(void)resourceStr.LoadStringW(IDS_PROXY_AUTO_DETECT);
+		m_proxyConfig[resourceStr.GetString()] = L"ON";
+	}
+
+	//プロキシ自動構成スクリプト
+	if (proxyInfo.lpszAutoConfigUrl)
+	{
+		(void)resourceStr.LoadStringW(IDS_PROXY_AUTO_CONFIG_URL);
+		m_proxyConfig[resourceStr.GetString()] = proxyInfo.lpszAutoConfigUrl;
+	}
+
+	//プロキシサーバー
+	if (proxyInfo.lpszProxy)
+	{
+		(void)resourceStr.LoadStringW(IDS_PROXY_SERVER);
+		m_proxyConfig[resourceStr.GetString()] = proxyInfo.lpszProxy;
+	}
+}
+
 void CipconfigpublicDlg::OnBnClickedButtonUpdate()
 {
 	m_privateIpAddresses.clear();
 	m_publicIpAddresses.clear();
 	m_dnsServers.clear();
+	m_proxyConfig.clear();
 	(void)m_listCtrl.DeleteAllItems();
 	m_nextItem = 0;
 	UpdateListContents();

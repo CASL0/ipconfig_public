@@ -18,6 +18,10 @@
 #define IDS_URL_PUBLIC_V4               10008
 #define IDS_URL_PUBLIC_V6               10009
 #define IDS_INET_OPTION                 10010
+#define IDS_PROXY_AUTO_DETECT           10011
+#define IDS_PROXY_AUTO_CONFIG_URL       10012
+#define IDS_PROXY_SERVER                10013
+#define IDS_GROUP_PROXY                 10014
 
 // Next default values for new objects
 // 

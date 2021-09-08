@@ -40,6 +40,7 @@ private:
 		PRIVATE_IP = 0,
 		PUBLIC_IP,
 		DNS_SERVER,
+		PROXY_CONFIG,
 	};
 
 	enum class DOWNLOAD_STATE
@@ -52,6 +53,7 @@ private:
 	std::map<std::wstring, std::list<std::string>> m_privateIpAddresses;
 	std::map<std::wstring, std::string> m_publicIpAddresses;
 	std::map<std::wstring, std::list<std::string>> m_dnsServers;
+	std::map<std::wstring, std::wstring> m_proxyConfig;
 	std::list<std::string> m_privateIpList;
 	int m_nextItem = 0;
 	std::vector<char> m_httpBuffer;
@@ -67,11 +69,13 @@ private:
 	void DisplayPrivateIpAddress();
 	void DisplayPublicIpAddress();
 	void DisplayDnsServers();
+	void DisplayProxyConfig();
 	std::wstring Utf8ToUtf16(const std::string& src);
 	void UpdateListContents();
 	void OnResponse(HINTERNET hInternet, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength);
 	LRESULT OnDownloadPublicIpInfo(WPARAM, LPARAM);
 	void LaunchInternetOption() const;
+	void RetrieveProxyInfo();
 public:
 	afx_msg void OnLvnLinkClickedListIpinfo(NMHDR* pNMHDR, LRESULT* pResult);
 	static void CALLBACK cb(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength);

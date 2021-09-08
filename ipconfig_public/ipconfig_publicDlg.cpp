@@ -39,6 +39,7 @@ BEGIN_MESSAGE_MAP(CipconfigpublicDlg, CDialogEx)
 	ON_NOTIFY(LVN_LINKCLICK, IDC_LIST_IPINFO, &CipconfigpublicDlg::OnLvnLinkClickedListIpinfo)
 	ON_MESSAGE(MESSAGE_DOWNLOAD_PUBLIC_IP_INFO, CipconfigpublicDlg::OnDownloadPublicIpInfo)
 	ON_BN_CLICKED(IDC_BUTTON_UPDATE, &CipconfigpublicDlg::OnBnClickedButtonUpdate)
+	ON_BN_CLICKED(IDC_BUTTON_INET_OPTION, &CipconfigpublicDlg::OnBnClickedButtonInetOption)
 END_MESSAGE_MAP()
 
 
@@ -73,10 +74,14 @@ BOOL CipconfigpublicDlg::OnInitDialog()
 	(void)resourceStr.LoadStringW(IDS_BUTTON_UPDATE);
 	GetDlgItem(IDC_BUTTON_UPDATE)->SetWindowTextW(resourceStr);
 
+	(void)resourceStr.LoadStringW(IDS_INET_OPTION);
+	GetDlgItem(IDC_BUTTON_INET_OPTION)->SetWindowTextW(resourceStr);
+
 	EnableDynamicLayout(TRUE);
 	(void)m_pDynamicLayout->Create(this);
 	(void)m_pDynamicLayout->AddItem(IDC_LIST_IPINFO, CMFCDynamicLayout::MoveNone(), CMFCDynamicLayout::SizeHorizontalAndVertical(100, 100));
 	(void)m_pDynamicLayout->AddItem(IDC_BUTTON_UPDATE, CMFCDynamicLayout::MoveVertical(100), CMFCDynamicLayout::SizeNone());
+	(void)m_pDynamicLayout->AddItem(IDC_BUTTON_INET_OPTION, CMFCDynamicLayout::MoveVertical(100), CMFCDynamicLayout::SizeNone());
 
 	UpdateListContents();
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
@@ -508,6 +513,27 @@ LRESULT CipconfigpublicDlg::OnDownloadPublicIpInfo(WPARAM wParam, LPARAM)
 	return ERROR_SUCCESS;
 }
 
+void CipconfigpublicDlg::LaunchInternetOption() const
+{
+	typedef BOOL(WINAPI* LAUNCHCPL) (HWND);
+	HMODULE inetcpl;
+
+	inetcpl = LoadLibrary(L"inetcpl.cpl");
+
+	if (inetcpl == nullptr)
+	{
+		OutputDebugString(L"LoadLibrary failed\n");
+		return;
+	}
+
+	auto cpl = reinterpret_cast<LAUNCHCPL>(GetProcAddress(inetcpl, "LaunchConnectionDialog"));
+	if (cpl)
+	{
+		cpl(nullptr);
+	}
+	(void)FreeLibrary(inetcpl);
+}
+
 void CipconfigpublicDlg::OnBnClickedButtonUpdate()
 {
 	m_privateIpAddresses.clear();
@@ -516,4 +542,10 @@ void CipconfigpublicDlg::OnBnClickedButtonUpdate()
 	(void)m_listCtrl.DeleteAllItems();
 	m_nextItem = 0;
 	UpdateListContents();
+}
+
+
+void CipconfigpublicDlg::OnBnClickedButtonInetOption()
+{
+	LaunchInternetOption();
 }

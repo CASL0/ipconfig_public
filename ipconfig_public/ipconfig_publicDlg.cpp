@@ -1,6 +1,9 @@
 ﻿
 // ipconfig_publicDlg.cpp : 実装ファイル
-//
+//@see ipffy API
+//	https://www.ipify.org/
+//@see IP Geolocation API
+//	https://ip-api.com/
 
 #include "pch.h"
 #include "framework.h"
@@ -11,6 +14,7 @@
 #include <WS2tcpip.h>
 #include <vector>
 #include <memory>
+#include <nlohmann/json.hpp>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -69,6 +73,7 @@ BOOL CipconfigpublicDlg::OnInitDialog()
 	MakeGroup(IDS_GROUP_PUBLIC_IP, static_cast<int>(GROUP_ID::PUBLIC_IP));
 	MakeGroup(IDS_GROUP_DNS_SERVER, static_cast<int>(GROUP_ID::DNS_SERVER));
 	MakeGroup(IDS_GROUP_PROXY, static_cast<int>(GROUP_ID::PROXY_CONFIG));
+	MakeGroup(IDS_GROUP_OTHERS, static_cast<int>(GROUP_ID::OTHERS));
 
 	(void)m_listCtrl.EnableGroupView(TRUE);
 
@@ -83,6 +88,11 @@ BOOL CipconfigpublicDlg::OnInitDialog()
 	(void)m_pDynamicLayout->AddItem(IDC_LIST_IPINFO, CMFCDynamicLayout::MoveNone(), CMFCDynamicLayout::SizeHorizontalAndVertical(100, 100));
 	(void)m_pDynamicLayout->AddItem(IDC_BUTTON_UPDATE, CMFCDynamicLayout::MoveVertical(100), CMFCDynamicLayout::SizeNone());
 	(void)m_pDynamicLayout->AddItem(IDC_BUTTON_INET_OPTION, CMFCDynamicLayout::MoveVertical(100), CMFCDynamicLayout::SizeNone());
+
+
+	CRect rect;
+	GetWindowRect(&rect);
+	(void)SetWindowPos(nullptr, rect.left, rect.top, 800, 600, SWP_SHOWWINDOW);
 
 	UpdateListContents();
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
@@ -132,7 +142,6 @@ ULONG CipconfigpublicDlg::GetAdapterInfo()
 	if (auto ret = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_PREFIX, nullptr, adapterAddresses.get(), &bufLen); ret != ERROR_SUCCESS)
 	{
 		OutputDebugString(L"GetAdaptersAddresses failed\n");
-		OutputDebugString(FormatErrorMessage(ret).c_str());
 		return ret;
 	}
 
@@ -322,6 +331,26 @@ void CipconfigpublicDlg::DisplayProxyConfig()
 	}
 }
 
+void CipconfigpublicDlg::DisplayIpGeolocation(const std::string& ipGeolocation)
+{
+	auto json = nlohmann::json::parse(ipGeolocation);
+
+	// ISP
+	auto isp = json.at("isp").get<std::string>();
+	OutputDebugStringW(L"ISP: ");
+	OutputDebugStringA(isp.c_str());
+	OutputDebugString(L"\n");
+	AddItemToGroup(L"ISP", Utf8ToUtf16(isp).c_str(), static_cast<int>(GROUP_ID::OTHERS));
+
+	// AS
+	auto as = json.at("as").get<std::string>();
+	OutputDebugStringW(L"AS: ");
+	OutputDebugStringA(as.c_str());
+	OutputDebugString(L"\n");
+	AddItemToGroup(L"AS", Utf8ToUtf16(as).c_str(), static_cast<int>(GROUP_ID::OTHERS));
+
+}
+
 std::wstring CipconfigpublicDlg::Utf8ToUtf16(const std::string& src)
 {
 	auto bufLen = MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, nullptr, 0);
@@ -337,10 +366,15 @@ void CipconfigpublicDlg::UpdateListContents()
 
 	if (auto ret = GetAdapterInfo(); ret != ERROR_SUCCESS)
 	{
+		OutputDebugString(FormatErrorMessage(ret).c_str());
 		OutputDebugString(L"プライベートIPアドレスの取得に失敗\n");
 	}
 
-	RetrieveProxyInfo();
+	if (auto ret = RetrieveProxyInfo(); ret != ERROR_SUCCESS)
+	{
+		OutputDebugString(FormatErrorMessage(ret).c_str());
+		OutputDebugString(L"プロキシ設定の取得に失敗\n");
+	}
 
 	DisplayPrivateIpAddress();
 	DisplayDnsServers();
@@ -410,6 +444,12 @@ void CipconfigpublicDlg::OnResponse(HINTERNET hInternet, DWORD dwInternetStatus,
 					m_publicIpAddresses[L"IPv6"] = publicIpInfo.c_str();
 				}
 				DisplayPublicIpAddress();
+				m_state = DOWNLOAD_STATE::IP_GEOLOCATION;
+				PostMessage(MESSAGE_DOWNLOAD_PUBLIC_IP_INFO, static_cast<WPARAM>(m_state), 0);
+			}
+			else if (m_state == DOWNLOAD_STATE::IP_GEOLOCATION)
+			{
+				DisplayIpGeolocation(publicIpInfo);
 			}
 			return;
 		}
@@ -518,13 +558,18 @@ LRESULT CipconfigpublicDlg::OnDownloadPublicIpInfo(WPARAM wParam, LPARAM)
 		(void)url.LoadStringW(IDS_URL_PUBLIC_V6);
 		(void)m_httpRequest.RequestUri(url.GetString(), cb, reinterpret_cast<DWORD_PTR>(this));
 		break;
+	case DOWNLOAD_STATE::IP_GEOLOCATION:
+		m_httpRequest.close();
+		(void)url.LoadStringW(IDS_URL_IP_GEOLOCATION);
+		(void)m_httpRequest.RequestUri(url.GetString(), cb, reinterpret_cast<DWORD_PTR>(this));
+		break;
 	default:
 		break;
 	}
 	return ERROR_SUCCESS;
 }
 
-void CipconfigpublicDlg::LaunchInternetOption() const
+DWORD CipconfigpublicDlg::LaunchInternetOption() const
 {
 	typedef BOOL(WINAPI* LAUNCHCPL) (HWND);
 	HMODULE inetcpl;
@@ -534,7 +579,7 @@ void CipconfigpublicDlg::LaunchInternetOption() const
 	if (inetcpl == nullptr)
 	{
 		OutputDebugString(L"LoadLibrary failed\n");
-		return;
+		return GetLastError();
 	}
 
 	auto cpl = reinterpret_cast<LAUNCHCPL>(GetProcAddress(inetcpl, "LaunchConnectionDialog"));
@@ -543,15 +588,17 @@ void CipconfigpublicDlg::LaunchInternetOption() const
 		cpl(nullptr);
 	}
 	(void)FreeLibrary(inetcpl);
+
+	return ERROR_SUCCESS;
 }
 
-void CipconfigpublicDlg::RetrieveProxyInfo()
+DWORD CipconfigpublicDlg::RetrieveProxyInfo()
 {
 	WINHTTP_CURRENT_USER_IE_PROXY_CONFIG proxyInfo = { 0 };
 	if (!WinHttpGetIEProxyConfigForCurrentUser(&proxyInfo))
 	{
 		OutputDebugString(L"WinHttpGetIEProxyConfigForCurrentUser failed\n");
-		return;
+		return GetLastError();
 	}
 
 	CString resourceStr;
@@ -576,6 +623,8 @@ void CipconfigpublicDlg::RetrieveProxyInfo()
 		(void)resourceStr.LoadStringW(IDS_PROXY_SERVER);
 		m_proxyConfig[resourceStr.GetString()] = proxyInfo.lpszProxy;
 	}
+
+	return ERROR_SUCCESS;
 }
 
 void CipconfigpublicDlg::OnBnClickedButtonUpdate()
@@ -592,7 +641,11 @@ void CipconfigpublicDlg::OnBnClickedButtonUpdate()
 
 void CipconfigpublicDlg::OnBnClickedButtonInetOption()
 {
-	LaunchInternetOption();
+	if (auto ret = LaunchInternetOption(); ret != ERROR_SUCCESS)
+	{
+		OutputDebugString(FormatErrorMessage(ret).c_str());
+		OutputDebugString(L"インターネットオプションを開くのに失敗\n");
+	}
 }
 
 BOOL CipconfigpublicDlg::PreTranslateMessage(MSG* msg)

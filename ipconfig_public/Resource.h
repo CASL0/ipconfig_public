@@ -22,6 +22,8 @@
 #define IDS_PROXY_AUTO_CONFIG_URL       10012
 #define IDS_PROXY_SERVER                10013
 #define IDS_GROUP_PROXY                 10014
+#define IDS_GROUP_OTHERS                10015
+#define IDS_URL_IP_GEOLOCATION          10016
 
 // Next default values for new objects
 // 

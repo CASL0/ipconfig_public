@@ -41,12 +41,14 @@ private:
 		PUBLIC_IP,
 		DNS_SERVER,
 		PROXY_CONFIG,
+		OTHERS,
 	};
 
 	enum class DOWNLOAD_STATE
 	{
 		PUBLIC_IPv4 = 0,
 		PUBLIC_IPv6,
+		IP_GEOLOCATION,
 	};
 
 	CListCtrl m_listCtrl;
@@ -70,12 +72,13 @@ private:
 	void DisplayPublicIpAddress();
 	void DisplayDnsServers();
 	void DisplayProxyConfig();
+	void DisplayIpGeolocation(const std::string& ipGeolocation);
 	std::wstring Utf8ToUtf16(const std::string& src);
 	void UpdateListContents();
 	void OnResponse(HINTERNET hInternet, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength);
 	LRESULT OnDownloadPublicIpInfo(WPARAM, LPARAM);
-	void LaunchInternetOption() const;
-	void RetrieveProxyInfo();
+	DWORD LaunchInternetOption() const;
+	DWORD RetrieveProxyInfo();
 	BOOL PreTranslateMessage(MSG* msg);
 public:
 	afx_msg void OnLvnLinkClickedListIpinfo(NMHDR* pNMHDR, LRESULT* pResult);

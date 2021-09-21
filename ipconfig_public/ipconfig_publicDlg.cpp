@@ -594,3 +594,23 @@ void CipconfigpublicDlg::OnBnClickedButtonInetOption()
 {
 	LaunchInternetOption();
 }
+
+BOOL CipconfigpublicDlg::PreTranslateMessage(MSG* msg)
+{
+	switch (msg->message)
+	{
+	case WM_KEYDOWN:
+		switch (msg->wParam)
+		{
+		case VK_ESCAPE:
+			return FALSE;
+		default:
+			break;
+		}
+		break;
+	default:
+		break;
+	}
+
+	return CDialog::PreTranslateMessage(msg);
+}

@@ -76,6 +76,7 @@ private:
 	LRESULT OnDownloadPublicIpInfo(WPARAM, LPARAM);
 	void LaunchInternetOption() const;
 	void RetrieveProxyInfo();
+	BOOL PreTranslateMessage(MSG* msg);
 public:
 	afx_msg void OnLvnLinkClickedListIpinfo(NMHDR* pNMHDR, LRESULT* pResult);
 	static void CALLBACK cb(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpvStatusInformation, DWORD dwStatusInformationLength);

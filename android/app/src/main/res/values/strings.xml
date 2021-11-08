@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">IpconfigPublic</string>
+    <string name="group_private_info">Private IP</string>
+    <string name="url_public_v4">https://api.ipify.org</string>
 </resources>

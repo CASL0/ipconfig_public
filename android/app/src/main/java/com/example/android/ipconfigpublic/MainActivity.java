@@ -32,12 +32,13 @@ public class MainActivity extends AppCompatActivity {
         mAdapter = new NetInfoAdapter(this, mNetInfoList);
         mNetInfoRecycleView.setAdapter(mAdapter);
         mNetInfoRecycleView.setLayoutManager(new LinearLayoutManager(this));
+        new FetchPublicInfo(mNetInfoList, mNetInfoRecycleView).execute(getString(R.string.url_public_v4));
     }
 
     private void fetchPrivateIpInfo(LinkedList<Pair<String,String>> netInfoList) {
         LinkedList<String> privateAddresses = getPrivateIpAddress();
         String val = TextUtils.join("\n", privateAddresses);
-        Pair<String,String> privateIp = new Pair<>("Private IP", val);
+        Pair<String,String> privateIp = new Pair<>(getString(R.string.group_private_info), val);
         netInfoList.addLast(privateIp);
     }
 

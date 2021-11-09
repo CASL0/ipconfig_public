@@ -71,7 +71,7 @@ public class FetchPublicInfo extends AsyncTask<String, Void, LinkedList<String>>
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if(!builder.toString().isEmpty()) {
+            if(!builder.toString().isEmpty() && !publicIpAddresses.contains(builder.toString())) {
                 Log.d(TAG, builder.toString());
                 publicIpAddresses.addLast(builder.toString());
             }

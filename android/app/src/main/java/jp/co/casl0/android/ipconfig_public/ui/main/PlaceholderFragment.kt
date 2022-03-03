@@ -1,6 +1,7 @@
 package jp.co.casl0.android.ipconfig_public.ui.main
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,9 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import jp.co.casl0.android.ipconfig_public.IpListAdapter
 import jp.co.casl0.android.ipconfig_public.R
 import jp.co.casl0.android.ipconfig_public.databinding.FragmentMainBinding
 
@@ -23,11 +27,12 @@ class PlaceholderFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private var _tabNumber: Int = 1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        pageViewModel = ViewModelProvider(this)[PageViewModel::class.java].apply {
-            setIndex(arguments?.getInt(ARG_SECTION_NUMBER) ?: 1)
-        }
+        pageViewModel = ViewModelProvider(this)[PageViewModel::class.java]
+        _tabNumber = arguments?.getInt(ARG_SECTION_NUMBER) ?: 1
     }
 
     override fun onCreateView(
@@ -38,10 +43,19 @@ class PlaceholderFragment : Fragment() {
         _binding = FragmentMainBinding.inflate(inflater, container, false)
         val root = binding.root
 
-        val textView: TextView = binding.sectionLabel
-        pageViewModel.text.observe(viewLifecycleOwner, Observer {
-            textView.text = it
-        })
+        val adapter = IpListAdapter(context, listOf(""))
+        val recyclerView: RecyclerView = binding.ipList
+        recyclerView.adapter = adapter
+        recyclerView.layoutManager = LinearLayoutManager(context)
+        when (_tabNumber) {
+            1 -> {
+                pageViewModel.privateIpAddresses.observe(viewLifecycleOwner, Observer {
+                    adapter.ipList = it
+                    recyclerView.adapter?.notifyDataSetChanged()
+                })
+            }
+        }
+        pageViewModel.updateIpAddresses()
         return root
     }
 

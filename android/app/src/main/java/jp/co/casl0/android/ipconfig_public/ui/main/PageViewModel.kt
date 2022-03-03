@@ -5,15 +5,21 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import jp.co.casl0.android.ipconfig_public.PrivateIpAddresses
 
 class PageViewModel : ViewModel() {
+    private var _privateIpAddresses = MutableLiveData<List<String>>(listOf(""))
+    val privateIpAddresses: LiveData<List<String>>
+        get() = _privateIpAddresses
 
-    private val _index = MutableLiveData<Int>()
-    val text: LiveData<String> = Transformations.map(_index) {
-        "Hello world from section: $it"
-    }
+    private var _publicIpAddresses = MutableLiveData<List<String>>(listOf(""))
+    val publicIpAddresses: LiveData<List<String>>
+        get() = _publicIpAddresses
 
-    fun setIndex(index: Int) {
-        _index.value = index
+    fun updateIpAddresses() {
+        val privateIp = PrivateIpAddresses().also {
+            it.fetchAddressData()
+        }
+        _privateIpAddresses.value = privateIp.data
     }
 }

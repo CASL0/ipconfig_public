@@ -1,11 +1,10 @@
 package jp.co.casl0.android.ipconfig_public.ui.main
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.*
 import jp.co.casl0.android.ipconfig_public.PrivateIpAddresses
+import jp.co.casl0.android.ipconfig_public.PublicIpAddresses
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class PageViewModel : ViewModel() {
     private var _privateIpAddresses = MutableLiveData<List<String>>(listOf(""))
@@ -17,9 +16,15 @@ class PageViewModel : ViewModel() {
         get() = _publicIpAddresses
 
     fun updateIpAddresses() {
-        val privateIp = PrivateIpAddresses().also {
+        PrivateIpAddresses().also {
             it.fetchAddressData()
+            _privateIpAddresses.postValue(it.data)
         }
-        _privateIpAddresses.value = privateIp.data
+        viewModelScope.launch(Dispatchers.IO) {
+            PublicIpAddresses("https://api64.ipify.org").also {
+                it.fetchAddressData()
+                _publicIpAddresses.postValue(it.data)
+            }
+        }
     }
 }

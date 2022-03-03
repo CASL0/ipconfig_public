@@ -54,6 +54,12 @@ class PlaceholderFragment : Fragment() {
                     recyclerView.adapter?.notifyDataSetChanged()
                 })
             }
+            2 -> {
+                pageViewModel.publicIpAddresses.observe(viewLifecycleOwner, Observer {
+                    adapter.ipList = it
+                    recyclerView.adapter?.notifyDataSetChanged()
+                })
+            }
         }
         pageViewModel.updateIpAddresses()
         return root

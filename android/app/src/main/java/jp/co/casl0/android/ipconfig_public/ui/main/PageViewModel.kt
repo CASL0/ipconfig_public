@@ -16,11 +16,13 @@ class PageViewModel : ViewModel() {
         get() = _publicIpAddresses
 
     fun updateIpAddresses() {
-        PrivateIpAddresses().also {
-            it.fetchAddressData()
-            _privateIpAddresses.postValue(it.data)
+        viewModelScope.launch {
+            PrivateIpAddresses().also {
+                it.fetchAddressData()
+                _privateIpAddresses.postValue(it.data)
+            }
         }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             PublicIpAddresses("https://api64.ipify.org").also {
                 it.fetchAddressData()
                 _publicIpAddresses.postValue(it.data)

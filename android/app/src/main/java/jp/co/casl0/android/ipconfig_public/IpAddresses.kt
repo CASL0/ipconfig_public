@@ -5,5 +5,5 @@ abstract class IpAddresses {
     val data: List<String>
         get() = _data
 
-    abstract fun fetchAddressData()
+    abstract suspend fun fetchAddressData()
 }

@@ -9,20 +9,31 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 
-class PublicIpAddresses(private val _url: String) : IpAddresses() {
+class PublicIpAddresses(private val _urlList: List<String>) : IpAddresses() {
+    constructor(url: String) : this(listOf(url))
+
     override suspend fun fetchAddressData() {
         withContext(Dispatchers.IO) {
-            val url = URL(_url)
-            (url.openConnection() as? HttpURLConnection)?.run {
-                requestMethod = "GET"
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    _data.add(parseResponse(inputStream))
-                } else {
-                    Log.e(
-                        PublicIpAddresses::class.java.simpleName,
-                        "HttpUrlConnection failed with status code: $responseCode"
-                    )
+            _urlList.forEach {
+                val url = URL(it)
+                (url.openConnection() as? HttpURLConnection)?.run {
+                    requestMethod = "GET"
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        Log.d(PublicIpAddresses::class.java.simpleName, "http status ok")
+                        parseResponse(inputStream).also { body ->
+                            if (!_data.contains(body)) {
+                                _data.add(body)
+                            }
+                        }
+
+                    } else {
+                        Log.e(
+                            PublicIpAddresses::class.java.simpleName,
+                            "HttpUrlConnection failed with status code: $responseCode"
+                        )
+                    }
                 }
+
             }
         }
     }

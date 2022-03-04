@@ -23,7 +23,8 @@ class PageViewModel : ViewModel() {
             }
         }
         viewModelScope.launch {
-            PublicIpAddresses("https://api64.ipify.org").also {
+            //IPv4とIPv6のパブリックIPを取得
+            PublicIpAddresses(listOf("https://api.ipify.org", "https://api64.ipify.org")).also {
                 it.fetchAddressData()
                 _publicIpAddresses.postValue(it.data)
             }

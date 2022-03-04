@@ -11,6 +11,8 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import jp.co.casl0.android.ipconfig_public.IpListAdapter
 import jp.co.casl0.android.ipconfig_public.R
 import jp.co.casl0.android.ipconfig_public.databinding.FragmentMainBinding
@@ -43,6 +45,7 @@ class PlaceholderFragment : Fragment() {
         _binding = FragmentMainBinding.inflate(inflater, container, false)
         val root = binding.root
 
+        //リストの設定
         val adapter = IpListAdapter(context, listOf(""))
         val recyclerView: RecyclerView = binding.ipList
         recyclerView.adapter = adapter
@@ -61,6 +64,15 @@ class PlaceholderFragment : Fragment() {
                 })
             }
         }
+
+        //フローティングアクションボタンの設定
+        val fab: FloatingActionButton = binding.fab
+        fab.setOnClickListener { view ->
+            pageViewModel.updateIpAddresses()
+            Snackbar.make(view, getString(R.string.update_message), Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show()
+        }
+
         pageViewModel.updateIpAddresses()
         return root
     }

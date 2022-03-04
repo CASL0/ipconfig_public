@@ -1,15 +1,11 @@
 package jp.co.casl0.android.ipconfig_public
 
 import android.os.Bundle
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.tabs.TabLayout
-import androidx.viewpager.widget.ViewPager
 import androidx.appcompat.app.AppCompatActivity
-import android.view.Menu
-import android.view.MenuItem
-import jp.co.casl0.android.ipconfig_public.ui.main.SectionsPagerAdapter
+import androidx.viewpager.widget.ViewPager
+import com.google.android.material.tabs.TabLayout
 import jp.co.casl0.android.ipconfig_public.databinding.ActivityMainBinding
+import jp.co.casl0.android.ipconfig_public.ui.main.SectionsPagerAdapter
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,11 +22,5 @@ class MainActivity : AppCompatActivity() {
         viewPager.adapter = sectionsPagerAdapter
         val tabs: TabLayout = binding.tabs
         tabs.setupWithViewPager(viewPager)
-        val fab: FloatingActionButton = binding.fab
-
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }
     }
 }

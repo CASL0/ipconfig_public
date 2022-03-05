@@ -1,6 +1,7 @@
 package jp.co.casl0.android.ipconfig_public.ui.main
 
 import androidx.lifecycle.*
+import com.orhanobut.logger.Logger
 import jp.co.casl0.android.ipconfig_public.PrivateIpAddresses
 import jp.co.casl0.android.ipconfig_public.PublicIpAddresses
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +17,7 @@ class PageViewModel : ViewModel() {
         get() = _publicIpAddresses
 
     fun updateIpAddresses() {
+        Logger.d("updateIpAddresses")
         viewModelScope.launch {
             PrivateIpAddresses().also {
                 it.fetchAddressData()

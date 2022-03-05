@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
+import com.orhanobut.logger.Logger
 import jp.co.casl0.android.ipconfig_public.IpListAdapter
 import jp.co.casl0.android.ipconfig_public.R
 import jp.co.casl0.android.ipconfig_public.databinding.FragmentMainBinding
@@ -41,7 +42,7 @@ class PlaceholderFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
+        Logger.d("onCreateView")
         _binding = FragmentMainBinding.inflate(inflater, container, false)
         val root = binding.root
 
@@ -100,6 +101,7 @@ class PlaceholderFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        Logger.d("onDestroyView")
         _binding = null
     }
 }

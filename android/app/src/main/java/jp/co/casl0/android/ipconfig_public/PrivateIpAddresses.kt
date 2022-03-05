@@ -1,6 +1,7 @@
 package jp.co.casl0.android.ipconfig_public
 
 import android.util.Log
+import com.orhanobut.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.NetworkInterface
@@ -11,18 +12,21 @@ class PrivateIpAddresses : IpAddresses() {
             val interfaces = NetworkInterface.getNetworkInterfaces() ?: return@withContext
 
             for (intf in interfaces) {
-                Log.d(PrivateIpAddresses::class.java.simpleName, intf.displayName)
+                Logger.d(intf.displayName)
                 when {
                     intf.isLoopback -> {
                         //ループバックは無視
+                        Logger.d("interface is loopback")
                         continue
                     }
                     !intf.isUp -> {
                         //リンクダウンしているインターフェースは無視
+                        Logger.d("interface is down")
                         continue
                     }
                     intf.isVirtual -> {
                         //仮想NICは無視
+                        Logger.d("interface is virtual")
                         continue
                     }
                 }
@@ -36,7 +40,7 @@ class PrivateIpAddresses : IpAddresses() {
 
                     val hostAddr = addr.hostAddress
                     if (hostAddr != null) {
-                        Log.d(PrivateIpAddresses::class.java.simpleName, hostAddr)
+                        Logger.d(hostAddr)
                         _data.add(hostAddr)
                     }
                 }

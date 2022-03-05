@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.orhanobut.logger.Logger
 
 class IpListAdapter(context: Context?, var ipList: List<String>) :
     RecyclerView.Adapter<IpListAdapter.IpListViewHolder>() {
@@ -16,11 +17,13 @@ class IpListAdapter(context: Context?, var ipList: List<String>) :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): IpListViewHolder {
+        Logger.d("onCreateViewHolder")
         val itemView: View = _inflater.inflate(R.layout.list_item, parent, false)
         return IpListViewHolder(itemView)
     }
 
     override fun onBindViewHolder(holder: IpListViewHolder, position: Int) {
+        Logger.d("onBindViewHolder")
         val text = ipList[position]
         holder.itemTextView.text = text
     }

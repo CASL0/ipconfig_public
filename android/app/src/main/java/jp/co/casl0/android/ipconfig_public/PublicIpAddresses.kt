@@ -1,6 +1,7 @@
 package jp.co.casl0.android.ipconfig_public
 
 import android.util.Log
+import com.orhanobut.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
@@ -16,10 +17,11 @@ class PublicIpAddresses(private val _urlList: List<String>) : IpAddresses() {
         withContext(Dispatchers.IO) {
             _urlList.forEach {
                 val url = URL(it)
+                Logger.d(url)
                 (url.openConnection() as? HttpURLConnection)?.run {
                     requestMethod = "GET"
                     if (responseCode == HttpURLConnection.HTTP_OK) {
-                        Log.d(PublicIpAddresses::class.java.simpleName, "http status ok")
+                        Logger.d("http status ok")
                         parseResponse(inputStream).also { body ->
                             if (!_data.contains(body)) {
                                 _data.add(body)
@@ -27,8 +29,7 @@ class PublicIpAddresses(private val _urlList: List<String>) : IpAddresses() {
                         }
 
                     } else {
-                        Log.e(
-                            PublicIpAddresses::class.java.simpleName,
+                        Logger.e(
                             "HttpUrlConnection failed with status code: $responseCode"
                         )
                     }

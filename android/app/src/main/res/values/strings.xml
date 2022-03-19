@@ -3,4 +3,5 @@
     <string name="tab_text_1">PRIVATE IP</string>
     <string name="tab_text_2">PUBLIC IP</string>
     <string name="update_message">情報の更新をしました</string>
+    <string name="action_licenses">LICENSES</string>
 </resources>

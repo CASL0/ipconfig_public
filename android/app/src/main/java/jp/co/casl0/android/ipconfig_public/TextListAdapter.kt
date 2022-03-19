@@ -8,27 +8,27 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.orhanobut.logger.Logger
 
-class IpListAdapter(context: Context?, var ipList: List<String>) :
-    RecyclerView.Adapter<IpListAdapter.IpListViewHolder>() {
+class TextListAdapter(context: Context?, var textList: List<String>) :
+    RecyclerView.Adapter<TextListAdapter.TextListViewHolder>() {
     private val _inflater: LayoutInflater = LayoutInflater.from(context)
 
-    inner class IpListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class TextListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val itemTextView: TextView = itemView.findViewById(R.id.listItemTextView)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): IpListViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TextListViewHolder {
         Logger.d("onCreateViewHolder")
         val itemView: View = _inflater.inflate(R.layout.list_item, parent, false)
-        return IpListViewHolder(itemView)
+        return TextListViewHolder(itemView)
     }
 
-    override fun onBindViewHolder(holder: IpListViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: TextListViewHolder, position: Int) {
         Logger.d("onBindViewHolder")
-        val text = ipList[position]
+        val text = textList[position]
         holder.itemTextView.text = text
     }
 
     override fun getItemCount(): Int {
-        return ipList.size
+        return textList.size
     }
 }

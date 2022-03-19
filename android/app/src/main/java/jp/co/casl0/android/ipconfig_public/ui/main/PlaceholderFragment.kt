@@ -1,11 +1,9 @@
 package jp.co.casl0.android.ipconfig_public.ui.main
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -14,8 +12,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.orhanobut.logger.Logger
-import jp.co.casl0.android.ipconfig_public.IpListAdapter
 import jp.co.casl0.android.ipconfig_public.R
+import jp.co.casl0.android.ipconfig_public.TextListAdapter
 import jp.co.casl0.android.ipconfig_public.databinding.FragmentMainBinding
 
 /**
@@ -47,20 +45,20 @@ class PlaceholderFragment : Fragment() {
         val root = binding.root
 
         //リストの設定
-        val adapter = IpListAdapter(context, listOf(""))
+        val adapter = TextListAdapter(context, listOf(""))
         val recyclerView: RecyclerView = binding.ipList
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(context)
         when (_tabNumber) {
             1 -> {
                 pageViewModel.privateIpAddresses.observe(viewLifecycleOwner, Observer {
-                    adapter.ipList = it
+                    adapter.textList = it
                     recyclerView.adapter?.notifyDataSetChanged()
                 })
             }
             2 -> {
                 pageViewModel.publicIpAddresses.observe(viewLifecycleOwner, Observer {
-                    adapter.ipList = it
+                    adapter.textList = it
                     recyclerView.adapter?.notifyDataSetChanged()
                 })
             }

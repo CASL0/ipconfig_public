@@ -11,6 +11,14 @@ import com.orhanobut.logger.Logger
 class TextListAdapter(context: Context?, var textList: List<String>) :
     RecyclerView.Adapter<TextListAdapter.TextListViewHolder>() {
     private val _inflater: LayoutInflater = LayoutInflater.from(context)
+    private var _fontSize: Float = 20.0f
+
+    constructor(context: Context?, textList: List<String>, fontSize: Float) : this(
+        context,
+        textList
+    ) {
+        _fontSize = fontSize
+    }
 
     inner class TextListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val itemTextView: TextView = itemView.findViewById(R.id.listItemTextView)
@@ -26,6 +34,7 @@ class TextListAdapter(context: Context?, var textList: List<String>) :
         Logger.d("onBindViewHolder")
         val text = textList[position]
         holder.itemTextView.text = text
+        holder.itemTextView.textSize = _fontSize
     }
 
     override fun getItemCount(): Int {

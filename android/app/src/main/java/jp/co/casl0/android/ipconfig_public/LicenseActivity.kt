@@ -13,7 +13,7 @@ class LicenseActivity : AppCompatActivity() {
         val binding = ActivityLicenseBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val adapter = TextListAdapter(this, getLicenses())
+        val adapter = TextListAdapter(this, getLicenses(), 17f)
         val recyclerView = binding.licenseList
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)

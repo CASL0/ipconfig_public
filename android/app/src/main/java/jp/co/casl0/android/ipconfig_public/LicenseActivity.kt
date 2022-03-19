@@ -2,6 +2,7 @@ package jp.co.casl0.android.ipconfig_public
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.orhanobut.logger.Logger
 import jp.co.casl0.android.ipconfig_public.databinding.ActivityLicenseBinding
@@ -16,6 +17,13 @@ class LicenseActivity : AppCompatActivity() {
         val recyclerView = binding.licenseList
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
+
+        //区切り線
+        DividerItemDecoration(
+            this,
+            DividerItemDecoration.VERTICAL
+        ).also { recyclerView.addItemDecoration(it) }
+
         Logger.d("licenses displayed")
     }
 

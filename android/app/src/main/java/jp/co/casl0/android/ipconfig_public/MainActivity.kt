@@ -2,6 +2,7 @@ package jp.co.casl0.android.ipconfig_public
 
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
@@ -20,6 +21,12 @@ class MainActivity : AppCompatActivity() {
         when (item.itemId) {
             R.id.action_licenses -> {
                 startActivity(Intent(this, LicenseActivity::class.java))
+            }
+            R.id.action_wifi_settings -> {
+                startActivity(Intent().apply { action = Settings.ACTION_WIFI_SETTINGS })
+            }
+            R.id.action_network_operator_settings -> {
+                startActivity(Intent().apply { action = Settings.ACTION_NETWORK_OPERATOR_SETTINGS })
             }
         }
         return super.onOptionsItemSelected(item)

@@ -2,6 +2,8 @@
     <string name="app_name">IPCONFIG PUBLIC</string>
     <string name="tab_text_1">PRIVATE IP</string>
     <string name="tab_text_2">PUBLIC IP</string>
-    <string name="update_message">情報の更新をしました</string>
+    <string name="update_message">情報を更新しました</string>
     <string name="action_licenses">LICENSES</string>
+    <string name="action_wifi_settings">Wi-Fi</string>
+    <string name="action_network_operator_settings">モバイルネットワーク</string>
 </resources>

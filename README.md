@@ -22,4 +22,8 @@
 * Gradle 7.2
 
 #### ビルド手順
+1. cd android
 1. ./gradlew build
+
+## ドキュメント
+* [docs](/docs)

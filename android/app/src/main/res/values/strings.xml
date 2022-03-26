@@ -6,4 +6,5 @@
     <string name="action_licenses">LICENSES</string>
     <string name="action_wifi_settings">Wi-Fi</string>
     <string name="action_network_operator_settings">モバイルネットワーク</string>
+    <string name="tab_text_3">RECENT USE</string>
 </resources>

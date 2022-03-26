@@ -1,10 +1,10 @@
 package jp.co.casl0.android.ipconfig_public
 
-import android.util.Log
 import com.orhanobut.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -18,23 +18,27 @@ class PublicIpAddresses(private val _urlList: List<String>) : IpAddresses() {
             _urlList.forEach {
                 val url = URL(it)
                 Logger.d(url)
-                (url.openConnection() as? HttpURLConnection)?.run {
-                    requestMethod = "GET"
-                    if (responseCode == HttpURLConnection.HTTP_OK) {
-                        Logger.d("http status ok")
-                        parseResponse(inputStream).also { body ->
-                            if (!_data.contains(body)) {
-                                _data.add(body)
+                try {
+                    (url.openConnection() as? HttpURLConnection)?.run {
+                        requestMethod = "GET"
+                        if (responseCode == HttpURLConnection.HTTP_OK) {
+                            Logger.d("http status ok")
+                            parseResponse(inputStream).also { body ->
+                                if (!_data.contains(body)) {
+                                    _data.add(body)
+                                }
                             }
+
+                        } else {
+                            Logger.e(
+                                "HttpUrlConnection failed with status code: $responseCode"
+                            )
                         }
-
-                    } else {
-                        Logger.e(
-                            "HttpUrlConnection failed with status code: $responseCode"
-                        )
                     }
+                } catch (e: IOException) {
+                    val errorMessage = e.localizedMessage
+                    if (errorMessage != null) Logger.d(errorMessage)
                 }
-
             }
         }
     }

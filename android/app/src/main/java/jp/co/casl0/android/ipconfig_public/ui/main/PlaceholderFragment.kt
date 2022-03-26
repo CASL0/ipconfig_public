@@ -62,6 +62,12 @@ class PlaceholderFragment : Fragment() {
                     recyclerView.adapter?.notifyDataSetChanged()
                 })
             }
+            3 -> {
+                pageViewModel.recentIpAddresses.observe(viewLifecycleOwner, Observer {
+                    adapter.textList = it
+                    recyclerView.adapter?.notifyDataSetChanged()
+                })
+            }
         }
 
         //フローティングアクションボタンの設定
